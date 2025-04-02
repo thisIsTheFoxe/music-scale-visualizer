@@ -81,7 +81,7 @@ export default function Launchpad({
   }), []);
 
   const getKeyLabel = (index: number): string => {
-    const key = Object.entries(keyMap).find(([_, v]) => v === index)?.[0];
+    const key = Object.entries(keyMap).find(entry => entry[1] === index)?.[0];
     if (!key) return '';
     return key.toUpperCase();
   };
