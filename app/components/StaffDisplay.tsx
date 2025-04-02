@@ -32,14 +32,22 @@ export default function StaffDisplay({ rootNote, scaleMode, scaleCategory, activ
       const scaleNotes = [];
       const totalNotesNeeded = 8; // We want to show 8 notes total
       let currentOctave = 4;
+      let lastNoteIndex = -1; // Track the last note's position in chromatic scale
+      
+      const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
       
       for (let i = 0; i < totalNotesNeeded; i++) {
-        const baseNote = baseScaleNotes[i % baseScaleNotes.length];
-        // If we've gone through all notes in the scale, increment octave
-        if (i > 0 && i % baseScaleNotes.length === 0) {
+        const note = baseScaleNotes[i % baseScaleNotes.length];
+        const noteIndex = chromaticScale.indexOf(note);
+        
+        // If this note comes earlier in the chromatic scale than the last note,
+        // it means we've wrapped around to the next octave
+        if (noteIndex <= lastNoteIndex && i > 0) {
           currentOctave++;
         }
-        scaleNotes.push({ note: baseNote, octave: currentOctave });
+        
+        lastNoteIndex = noteIndex;
+        scaleNotes.push({ note, octave: currentOctave });
       }
 
       // Initialize VexFlow
