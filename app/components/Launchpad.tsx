@@ -76,7 +76,7 @@ export default function Launchpad({
   };
 
   const getKeyLabel = (index: number): string => {
-    const key = Object.entries(keyMap).find(([_, value]) => value === index)?.[0];
+    const key = Object.entries(keyMap).find(([k, v]) => v === index)?.[0];
     if (!key) return '';
     return key.toUpperCase();
   };
@@ -111,7 +111,7 @@ export default function Launchpad({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [scaleNotes, playNote, onNoteActivate]);
+  }, [scaleNotes, playNote, onNoteActivate, keyMap]);
 
   return (
     <div className="grid grid-cols-5 gap-4 p-4 max-w-3xl mx-auto">
