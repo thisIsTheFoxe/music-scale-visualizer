@@ -10,6 +10,7 @@ interface StaffDisplayProps {
   scaleCategory: ScaleCategory;
   activeNote: { note: Note; octave: number } | null;
   totalNotesNeeded: number;
+  startOctave: number;
 }
 
 export default function StaffDisplay({ 
@@ -17,7 +18,8 @@ export default function StaffDisplay({
   scaleMode, 
   scaleCategory, 
   activeNote,
-  totalNotesNeeded 
+  totalNotesNeeded,
+  startOctave
 }: StaffDisplayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -37,7 +39,7 @@ export default function StaffDisplay({
       
       // Create an array of notes that spans multiple octaves
       const scaleNotes = [];
-      let currentOctave = 4;
+      let currentOctave = startOctave;
       let lastNoteIndex = -1; // Track the last note's position in chromatic scale
       
       const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -58,13 +60,13 @@ export default function StaffDisplay({
 
       // Initialize VexFlow
       const vf = new Factory({
-        renderer: { elementId: containerId, width: 800, height: 150 }
+        renderer: { elementId: containerId, width: 800, height: 200 }
       });
 
       const context = vf.getContext();
       
       // Create a single stave without time signature
-      const stave = new Stave(10, 40, 780);
+      const stave = new Stave(10, 60, 780);
       stave.addClef('treble');
       stave.setContext(context).draw();
 
@@ -107,7 +109,7 @@ export default function StaffDisplay({
     } catch (error) {
       console.error('Error in StaffDisplay:', error);
     }
-  }, [rootNote, scaleMode, scaleCategory, activeNote, totalNotesNeeded]);
+  }, [rootNote, scaleMode, scaleCategory, activeNote, totalNotesNeeded, startOctave]);
 
   return (
     <div 

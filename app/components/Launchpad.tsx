@@ -11,6 +11,7 @@ interface LaunchpadProps {
   activeNote: { note: Note; octave: number } | null;
   onNoteActivate: (note: { note: Note; octave: number } | null) => void;
   totalNotesNeeded: number;
+  startOctave: number;
 }
 
 interface ScaleNoteWithOctave {
@@ -24,7 +25,8 @@ export default function Launchpad({
   scaleCategory,
   activeNote,
   onNoteActivate,
-  totalNotesNeeded
+  totalNotesNeeded,
+  startOctave
 }: LaunchpadProps) {
   const [synth, setSynth] = useState<Tone.Synth | null>(null);
 
@@ -42,7 +44,7 @@ export default function Launchpad({
   
   // Create an array of notes that spans multiple octaves
   const scaleNotes: ScaleNoteWithOctave[] = [];
-  let currentOctave = 4;
+  let currentOctave = startOctave;
   let lastNoteIndex = -1; // Track the last note's position in chromatic scale
   
   const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];

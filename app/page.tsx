@@ -6,6 +6,7 @@ import ScaleSelector from './components/ScaleSelector';
 import StaffDisplay from './components/StaffDisplay';
 import Launchpad from './components/Launchpad';
 import NoteCountControl from './components/NoteCountControl';
+import OctaveControl from './components/OctaveControl';
 
 export default function Home() {
   const [selectedNote, setSelectedNote] = useState<Note>('C');
@@ -13,6 +14,7 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<ScaleCategory>('diatonic');
   const [activeNote, setActiveNote] = useState<{ note: Note; octave: number } | null>(null);
   const [noteCount, setNoteCount] = useState(8);
+  const [startOctave, setStartOctave] = useState(4);
 
   const scaleName = getScaleName(selectedNote, selectedMode, selectedCategory);
   const noteCountText = getScaleNoteCount(selectedMode, selectedCategory);
@@ -37,10 +39,16 @@ export default function Home() {
           {scaleName} ({noteCountText} notes)
         </h2>
 
-        <NoteCountControl
-          noteCount={noteCount}
-          onNoteCountChange={setNoteCount}
-        />
+        <div className="space-y-2">
+          <NoteCountControl
+            noteCount={noteCount}
+            onNoteCountChange={setNoteCount}
+          />
+          <OctaveControl
+            startOctave={startOctave}
+            onOctaveChange={setStartOctave}
+          />
+        </div>
 
         <div className="my-8">
           <StaffDisplay
@@ -49,6 +57,7 @@ export default function Home() {
             scaleCategory={selectedCategory}
             activeNote={activeNote}
             totalNotesNeeded={noteCount}
+            startOctave={startOctave}
           />
         </div>
 
@@ -59,6 +68,7 @@ export default function Home() {
           activeNote={activeNote}
           onNoteActivate={setActiveNote}
           totalNotesNeeded={noteCount}
+          startOctave={startOctave}
         />
       </div>
     </main>
