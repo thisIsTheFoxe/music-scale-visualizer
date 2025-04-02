@@ -9,9 +9,16 @@ interface StaffDisplayProps {
   scaleMode: ScaleMode;
   scaleCategory: ScaleCategory;
   activeNote: { note: Note; octave: number } | null;
+  totalNotesNeeded: number;
 }
 
-export default function StaffDisplay({ rootNote, scaleMode, scaleCategory, activeNote }: StaffDisplayProps) {
+export default function StaffDisplay({ 
+  rootNote, 
+  scaleMode, 
+  scaleCategory, 
+  activeNote,
+  totalNotesNeeded 
+}: StaffDisplayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,7 +37,6 @@ export default function StaffDisplay({ rootNote, scaleMode, scaleCategory, activ
       
       // Create an array of notes that spans multiple octaves
       const scaleNotes = [];
-      const totalNotesNeeded = 8; // We want to show 8 notes total
       let currentOctave = 4;
       let lastNoteIndex = -1; // Track the last note's position in chromatic scale
       
@@ -101,7 +107,7 @@ export default function StaffDisplay({ rootNote, scaleMode, scaleCategory, activ
     } catch (error) {
       console.error('Error in StaffDisplay:', error);
     }
-  }, [rootNote, scaleMode, scaleCategory, activeNote]);
+  }, [rootNote, scaleMode, scaleCategory, activeNote, totalNotesNeeded]);
 
   return (
     <div 

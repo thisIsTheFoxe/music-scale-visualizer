@@ -5,15 +5,17 @@ import { Note, ScaleMode, ScaleCategory, getScaleName, getScaleNoteCount } from 
 import ScaleSelector from './components/ScaleSelector';
 import StaffDisplay from './components/StaffDisplay';
 import Launchpad from './components/Launchpad';
+import NoteCountControl from './components/NoteCountControl';
 
 export default function Home() {
   const [selectedNote, setSelectedNote] = useState<Note>('C');
   const [selectedMode, setSelectedMode] = useState<ScaleMode>('major');
   const [selectedCategory, setSelectedCategory] = useState<ScaleCategory>('diatonic');
   const [activeNote, setActiveNote] = useState<{ note: Note; octave: number } | null>(null);
+  const [noteCount, setNoteCount] = useState(8);
 
   const scaleName = getScaleName(selectedNote, selectedMode, selectedCategory);
-  const noteCount = getScaleNoteCount(selectedMode, selectedCategory);
+  const noteCountText = getScaleNoteCount(selectedMode, selectedCategory);
 
   return (
     <main className="min-h-screen bg-gray-50 py-8">
@@ -32,8 +34,13 @@ export default function Home() {
         />
 
         <h2 className="text-2xl font-semibold text-center my-4 text-gray-700">
-          {scaleName} ({noteCount} notes)
+          {scaleName} ({noteCountText} notes)
         </h2>
+
+        <NoteCountControl
+          noteCount={noteCount}
+          onNoteCountChange={setNoteCount}
+        />
 
         <div className="my-8">
           <StaffDisplay
@@ -41,6 +48,7 @@ export default function Home() {
             scaleMode={selectedMode}
             scaleCategory={selectedCategory}
             activeNote={activeNote}
+            totalNotesNeeded={noteCount}
           />
         </div>
 
@@ -50,6 +58,7 @@ export default function Home() {
           scaleCategory={selectedCategory}
           activeNote={activeNote}
           onNoteActivate={setActiveNote}
+          totalNotesNeeded={noteCount}
         />
       </div>
     </main>

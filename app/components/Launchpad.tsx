@@ -10,6 +10,7 @@ interface LaunchpadProps {
   scaleCategory: ScaleCategory;
   activeNote: { note: Note; octave: number } | null;
   onNoteActivate: (note: { note: Note; octave: number } | null) => void;
+  totalNotesNeeded: number;
 }
 
 interface ScaleNoteWithOctave {
@@ -22,7 +23,8 @@ export default function Launchpad({
   scaleMode, 
   scaleCategory,
   activeNote,
-  onNoteActivate
+  onNoteActivate,
+  totalNotesNeeded
 }: LaunchpadProps) {
   const [synth, setSynth] = useState<Tone.Synth | null>(null);
 
@@ -40,7 +42,6 @@ export default function Launchpad({
   
   // Create an array of notes that spans multiple octaves
   const scaleNotes: ScaleNoteWithOctave[] = [];
-  const totalNotesNeeded = 8; // Match the staff display
   let currentOctave = 4;
   let lastNoteIndex = -1; // Track the last note's position in chromatic scale
   
@@ -60,10 +61,22 @@ export default function Launchpad({
     scaleNotes.push({ note, octave: currentOctave });
   }
   
-  // Map keyboard keys to notes (1-8 keys)
+  // Map keyboard keys to notes using left side of QWERTY keyboard (5x4 grid)
   const keyMap: { [key: string]: number } = {
-    '1': 0, '2': 1, '3': 2, '4': 3,
-    '5': 4, '6': 5, '7': 6, '8': 7
+    // Top row
+    '1': 0,  '2': 1,  '3': 2,  '4': 3,  '5': 4,
+    // Second row
+    'q': 5,  'w': 6,  'e': 7,  'r': 8,  't': 9,
+    // Third row
+    'a': 10, 's': 11, 'd': 12, 'f': 13, 'g': 14,
+    // Bottom row
+    'z': 15, 'x': 16, 'c': 17, 'v': 18, 'b': 19
+  };
+
+  const getKeyLabel = (index: number): string => {
+    const key = Object.entries(keyMap).find(([_, value]) => value === index)?.[0];
+    if (!key) return '';
+    return key.toUpperCase();
   };
 
   const playNote = useCallback(({ note, octave }: ScaleNoteWithOctave) => {
@@ -99,7 +112,7 @@ export default function Launchpad({
   }, [scaleNotes, playNote, onNoteActivate]);
 
   return (
-    <div className="grid grid-cols-4 gap-4 p-4 max-w-2xl mx-auto">
+    <div className="grid grid-cols-5 gap-4 p-4 max-w-3xl mx-auto">
       {scaleNotes.map(({ note, octave }, index) => (
         <button
           key={`${note}-${octave}-${index}`}
@@ -107,7 +120,7 @@ export default function Launchpad({
           onMouseUp={() => onNoteActivate(null)}
           onMouseLeave={() => onNoteActivate(null)}
           className={`
-            h-24 rounded-xl text-xl font-bold transition-all
+            h-20 rounded-xl text-xl font-bold transition-all
             ${activeNote?.note === note && activeNote?.octave === octave
               ? 'bg-blue-500 text-white transform scale-95'
               : 'bg-white text-blue-500 hover:bg-blue-50 shadow-lg'
@@ -116,7 +129,7 @@ export default function Launchpad({
         >
           {note}
           <span className="block text-sm mt-2 opacity-50">
-            Key: {Object.keys(keyMap).find(key => keyMap[key] === index) || (index + 1)}
+            Key: {getKeyLabel(index)}
           </span>
           <span className="block text-sm opacity-50">
             Octave: {octave}
