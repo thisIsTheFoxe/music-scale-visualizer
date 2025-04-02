@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import * as Tone from 'tone';
 import { Note, ScaleMode, ScaleCategory, getScale, getNoteFrequency } from '../utils/music';
 
@@ -18,6 +18,8 @@ interface ScaleNoteWithOctave {
   note: Note;
   octave: number;
 }
+
+type KeyMap = { [key: string]: number };
 
 export default function Launchpad({ 
   rootNote, 
@@ -40,31 +42,34 @@ export default function Launchpad({
     };
   }, []);
 
-  const baseScaleNotes = getScale(rootNote, scaleMode, scaleCategory);
+  const baseScaleNotes = useMemo(() => getScale(rootNote, scaleMode, scaleCategory), [rootNote, scaleMode, scaleCategory]);
   
   // Create an array of notes that spans multiple octaves
-  const scaleNotes: ScaleNoteWithOctave[] = [];
-  let currentOctave = startOctave;
-  let lastNoteIndex = -1; // Track the last note's position in chromatic scale
-  
-  const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-  
-  for (let i = 0; i < totalNotesNeeded; i++) {
-    const note = baseScaleNotes[i % baseScaleNotes.length];
-    const noteIndex = chromaticScale.indexOf(note);
+  const scaleNotes = useMemo(() => {
+    const notes: ScaleNoteWithOctave[] = [];
+    let currentOctave = startOctave;
+    let lastNoteIndex = -1; // Track the last note's position in chromatic scale
     
-    // If this note comes earlier in the chromatic scale than the last note,
-    // it means we've wrapped around to the next octave
-    if (noteIndex <= lastNoteIndex && i > 0) {
-      currentOctave++;
+    const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    
+    for (let i = 0; i < totalNotesNeeded; i++) {
+      const note = baseScaleNotes[i % baseScaleNotes.length];
+      const noteIndex = chromaticScale.indexOf(note);
+      
+      // If this note comes earlier in the chromatic scale than the last note,
+      // it means we've wrapped around to the next octave
+      if (noteIndex <= lastNoteIndex && i > 0) {
+        currentOctave++;
+      }
+      
+      lastNoteIndex = noteIndex;
+      notes.push({ note, octave: currentOctave });
     }
-    
-    lastNoteIndex = noteIndex;
-    scaleNotes.push({ note, octave: currentOctave });
-  }
+    return notes;
+  }, [baseScaleNotes, startOctave, totalNotesNeeded]);
   
   // Map keyboard keys to notes using left side of QWERTY keyboard (5x4 grid)
-  const keyMap: { [key: string]: number } = {
+  const keyMap: KeyMap = useMemo(() => ({
     // Top row
     '1': 0,  '2': 1,  '3': 2,  '4': 3,  '5': 4,
     // Second row
@@ -73,10 +78,10 @@ export default function Launchpad({
     'a': 10, 's': 11, 'd': 12, 'f': 13, 'g': 14,
     // Bottom row
     'z': 15, 'x': 16, 'c': 17, 'v': 18, 'b': 19
-  };
+  }), []);
 
   const getKeyLabel = (index: number): string => {
-    const key = Object.entries(keyMap).find(([k, v]) => v === index)?.[0];
+    const key = Object.entries(keyMap).find(([_, v]) => v === index)?.[0];
     if (!key) return '';
     return key.toUpperCase();
   };
