@@ -8,6 +8,8 @@ interface LaunchpadProps {
   rootNote: Note;
   scaleMode: ScaleMode;
   scaleCategory: ScaleCategory;
+  activeNote: { note: Note; octave: number } | null;
+  onNoteActivate: (note: { note: Note; octave: number } | null) => void;
 }
 
 interface ScaleNoteWithOctave {
@@ -15,14 +17,14 @@ interface ScaleNoteWithOctave {
   octave: number;
 }
 
-interface ActiveNote {
-  note: Note;
-  octave: number;
-}
-
-export default function Launchpad({ rootNote, scaleMode, scaleCategory }: LaunchpadProps) {
+export default function Launchpad({ 
+  rootNote, 
+  scaleMode, 
+  scaleCategory,
+  activeNote,
+  onNoteActivate
+}: LaunchpadProps) {
   const [synth, setSynth] = useState<Tone.Synth | null>(null);
-  const [activeNote, setActiveNote] = useState<ActiveNote | null>(null);
 
   useEffect(() => {
     // Initialize synth
@@ -59,10 +61,10 @@ export default function Launchpad({ rootNote, scaleMode, scaleCategory }: Launch
   const playNote = useCallback(({ note, octave }: ScaleNoteWithOctave) => {
     if (!synth) return;
     
-    setActiveNote({ note, octave });
+    onNoteActivate({ note, octave });
     const freq = getNoteFrequency(note, octave);
     synth.triggerAttackRelease(freq, '8n');
-  }, [synth]);
+  }, [synth, onNoteActivate]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -75,7 +77,7 @@ export default function Launchpad({ rootNote, scaleMode, scaleCategory }: Launch
     const handleKeyUp = (e: KeyboardEvent) => {
       const index = keyMap[e.key];
       if (index !== undefined && index < scaleNotes.length) {
-        setActiveNote(null);
+        onNoteActivate(null);
       }
     };
 
@@ -86,7 +88,7 @@ export default function Launchpad({ rootNote, scaleMode, scaleCategory }: Launch
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [scaleNotes, playNote]);
+  }, [scaleNotes, playNote, onNoteActivate]);
 
   return (
     <div className="grid grid-cols-4 gap-4 p-4 max-w-2xl mx-auto">
@@ -94,8 +96,8 @@ export default function Launchpad({ rootNote, scaleMode, scaleCategory }: Launch
         <button
           key={`${note}-${octave}-${index}`}
           onMouseDown={() => playNote({ note, octave })}
-          onMouseUp={() => setActiveNote(null)}
-          onMouseLeave={() => setActiveNote(null)}
+          onMouseUp={() => onNoteActivate(null)}
+          onMouseLeave={() => onNoteActivate(null)}
           className={`
             h-24 rounded-xl text-xl font-bold transition-all
             ${activeNote?.note === note && activeNote?.octave === octave

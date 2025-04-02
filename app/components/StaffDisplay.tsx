@@ -8,9 +8,10 @@ interface StaffDisplayProps {
   rootNote: Note;
   scaleMode: ScaleMode;
   scaleCategory: ScaleCategory;
+  activeNote: { note: Note; octave: number } | null;
 }
 
-export default function StaffDisplay({ rootNote, scaleMode, scaleCategory }: StaffDisplayProps) {
+export default function StaffDisplay({ rootNote, scaleMode, scaleCategory, activeNote }: StaffDisplayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,101 +41,59 @@ export default function StaffDisplay({ rootNote, scaleMode, scaleCategory }: Sta
         }
         scaleNotes.push({ note: baseNote, octave: currentOctave });
       }
-      
-      // Calculate how many measures we need
-      const measuresNeeded = Math.ceil(scaleNotes.length / 4);
-      const totalWidth = Math.max(800, measuresNeeded * 300); // 300px per measure
 
-      // Initialize VexFlow with calculated width
+      // Initialize VexFlow
       const vf = new Factory({
-        renderer: { elementId: containerId, width: totalWidth, height: 200 }
+        renderer: { elementId: containerId, width: 800, height: 150 }
       });
 
       const context = vf.getContext();
-
-      // Create a single stave for all measures
-      const stave = new Stave(10, 40, totalWidth - 20);
-      stave.addClef('treble').addTimeSignature('4/4');
+      
+      // Create a single stave without time signature
+      const stave = new Stave(10, 40, 780);
+      stave.addClef('treble');
       stave.setContext(context).draw();
 
-      // Create measures
-      const measures = [];
-      for (let i = 0; i < scaleNotes.length; i += 4) {
-        const measureNotes = scaleNotes.slice(i, Math.min(i + 4, scaleNotes.length));
-        // If this is the last measure and it's not full, repeat the last note
-        while (measureNotes.length < 4) {
-          measureNotes.push(measureNotes[measureNotes.length - 1] || scaleNotes[scaleNotes.length - 1]);
+      // Create notes
+      const notes = scaleNotes.map(({ note, octave }) => {
+        const vexNote = getVexFlowNote(note);
+        const staveNote = new StaveNote({ 
+          keys: [`${vexNote}/${octave}`], 
+          duration: 'q' 
+        });
+
+        // Add accidental if the note has one
+        if (note.includes('#')) {
+          staveNote.addModifier(new Accidental('#'));
         }
-        
-        // Create StaveNotes for this measure
-        const notes = measureNotes.map(({ note, octave }) => {
-          const vexNote = getVexFlowNote(note);
-          
-          const staveNote = new StaveNote({ 
-            keys: [`${vexNote}/${octave}`], 
-            duration: 'q' 
-          });
 
-          // Add accidental if the note has one
-          if (note.includes('#')) {
-            staveNote.addModifier(new Accidental('#'));
-          }
-
-          return staveNote;
-        });
-        
-        measures.push(notes);
-      }
-
-      // Create and draw voices for each measure
-      measures.forEach((measureNotes, i) => {
-        const voice = new Voice({
-          numBeats: 4,
-          beatValue: 4,
-        });
-        voice.addTickables(measureNotes);
-
-        // Calculate the width for this measure
-        const measureWidth = (totalWidth - 20) / measures.length;
-        const formatWidth = i === 0 ? measureWidth - 120 : measureWidth - 60;
-
-        // Position the notes within the measure
-        new Formatter()
-          .joinVoices([voice])
-          .format([voice], formatWidth);
-
-        // Adjust x position for each note
-        const measureX = 10 + i * measureWidth;
-        voice.getTickables().forEach((note) => {
-          const noteX = note.getX();
-          note.setStave(stave);
-          note.setX(measureX + (i === 0 ? 100 : 50) + noteX);
-        });
-
-        // Draw the notes
-        voice.draw(context, stave);
-
-        // Draw bar line after each measure except the last one
-        if (i < measures.length - 1) {
-          const barX = measureX + measureWidth;
-          const startY = stave.getYForLine(0);
-          const endY = stave.getYForLine(4);
-          
-          context.save();
-          context.setLineWidth(1);
-          context.beginPath();
-          context.moveTo(barX, startY);
-          context.lineTo(barX, endY);
-          context.strokeStyle = 'black';
-          context.stroke();
-          context.restore();
+        // Set note color if it's active
+        if (activeNote && activeNote.note === note && activeNote.octave === octave) {
+          staveNote.setStyle({ fillStyle: '#3b82f6', strokeStyle: '#3b82f6' });
         }
+
+        return staveNote;
       });
+
+      // Create a single voice with all notes
+      const voice = new Voice({
+        numBeats: notes.length,
+        beatValue: 4,
+      });
+      voice.addTickables(notes);
+
+      // Format and justify the notes
+      new Formatter()
+        .joinVoices([voice])
+        .format([voice], 700); // Leave some space for clef
+
+      // Draw the notes
+      voice.draw(context, stave);
 
     } catch (error) {
       console.error('Error in StaffDisplay:', error);
     }
-  }, [rootNote, scaleMode, scaleCategory]);
+  }, [rootNote, scaleMode, scaleCategory, activeNote]);
 
   return (
     <div 

@@ -10,6 +10,7 @@ export default function Home() {
   const [selectedNote, setSelectedNote] = useState<Note>('C');
   const [selectedMode, setSelectedMode] = useState<ScaleMode>('major');
   const [selectedCategory, setSelectedCategory] = useState<ScaleCategory>('diatonic');
+  const [activeNote, setActiveNote] = useState<{ note: Note; octave: number } | null>(null);
 
   const scaleName = getScaleName(selectedNote, selectedMode, selectedCategory);
   const noteCount = getScaleNoteCount(selectedMode, selectedCategory);
@@ -39,6 +40,7 @@ export default function Home() {
             rootNote={selectedNote}
             scaleMode={selectedMode}
             scaleCategory={selectedCategory}
+            activeNote={activeNote}
           />
         </div>
 
@@ -46,6 +48,8 @@ export default function Home() {
           rootNote={selectedNote}
           scaleMode={selectedMode}
           scaleCategory={selectedCategory}
+          activeNote={activeNote}
+          onNoteActivate={setActiveNote}
         />
       </div>
     </main>
