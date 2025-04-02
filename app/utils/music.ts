@@ -22,7 +22,9 @@ export function getScale(root: Note, mode: ScaleMode, category: ScaleCategory): 
   
   return pattern.map((interval: number) => {
     const noteIndex = (rootIndex + interval) % 12;
-    return NOTES[noteIndex];
+    const note = NOTES[noteIndex];
+    // For intervals >= 12, we'll handle the octave in the staff display
+    return note;
   });
 }
 

@@ -29,7 +29,7 @@ export default function ScaleSelector({
         <select
           value={selectedNote}
           onChange={(e) => onNoteChange(e.target.value as Note)}
-          className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 bg-white"
         >
           {notes.map((note) => (
             <option key={note} value={note}>
@@ -41,7 +41,7 @@ export default function ScaleSelector({
         <select
           value={selectedMode}
           onChange={(e) => onModeChange(e.target.value as ScaleMode)}
-          className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 bg-white"
         >
           {modes.map((mode) => (
             <option key={mode} value={mode}>
@@ -55,7 +55,7 @@ export default function ScaleSelector({
         <select
           value={selectedCategory}
           onChange={(e) => onCategoryChange(e.target.value as ScaleCategory)}
-          className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 bg-white"
         >
           {categories.map((category) => (
             <option key={category} value={category}>
