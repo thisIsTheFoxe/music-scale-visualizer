@@ -12,6 +12,7 @@ interface LaunchpadProps {
   onNoteActivate: (note: { note: Note; octave: number } | null) => void;
   totalNotesNeeded: number;
   startOctave: number;
+  tempo: number;
 }
 
 interface ScaleNoteWithOctave {
@@ -28,7 +29,8 @@ export default function Launchpad({
   activeNote,
   onNoteActivate,
   totalNotesNeeded,
-  startOctave
+  startOctave,
+  tempo = 120
 }: LaunchpadProps) {
   const [synth, setSynth] = useState<Tone.Synth | null>(null);
 
@@ -91,8 +93,12 @@ export default function Launchpad({
     
     onNoteActivate({ note, octave });
     const freq = getNoteFrequency(note, octave);
-    synth.triggerAttackRelease(freq, '8n');
-  }, [synth, onNoteActivate]);
+    // Convert tempo to note duration (in seconds)
+    // For a quarter note: duration = 60 / tempo
+    // For an eighth note: duration = 30 / tempo
+    const duration = 30 / tempo;
+    synth.triggerAttackRelease(freq, duration);
+  }, [synth, onNoteActivate, tempo]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
