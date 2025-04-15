@@ -8,6 +8,8 @@ import Launchpad from './components/Launchpad';
 import NoteCountControl from './components/NoteCountControl';
 import OctaveControl from './components/OctaveControl';
 import TempoControl from './components/TempoControl';
+import AutoPlay from './components/AutoPlay';
+import Metronome from './components/Metronome';
 
 interface ScaleNoteWithOctave {
   note: Note;
@@ -27,65 +29,61 @@ export default function Home() {
   const noteCountText = getScaleNoteCount(selectedMode, selectedCategory);
 
   return (
-    <main className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">
+    <main className="min-h-screen bg-white flex flex-col items-center py-8 px-4">
+      <div className="w-full max-w-4xl mx-auto">
+        <h1 className="text-2xl font-bold text-center mb-8">
           Music Scale Visualizer
         </h1>
-        
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <ScaleSelector
-            selectedNote={selectedNote}
-            selectedMode={selectedMode}
-            selectedCategory={selectedCategory}
-            onNoteChange={setSelectedNote}
-            onModeChange={setSelectedMode}
-            onCategoryChange={setSelectedCategory}
-          />
-          
-          <TempoControl
-            initialTempo={tempo}
-            onTempoChange={setTempo}
-          />
-        </div>
 
-        <h2 className="text-2xl font-semibold text-center my-4 text-gray-700">
-          {scaleName} ({noteCountText} notes)
-        </h2>
+        <div className="flex flex-col items-center gap-8">
+          <div className="flex flex-col items-center gap-4 bg-white p-6 rounded-lg shadow-sm">
+            <ScaleSelector
+              selectedNote={selectedNote}
+              selectedMode={selectedMode}
+              selectedCategory={selectedCategory}
+              onNoteChange={setSelectedNote}
+              onModeChange={setSelectedMode}
+              onCategoryChange={setSelectedCategory}
+            />
+            <div className="flex flex-col items-center gap-2">
+              <TempoControl
+                initialTempo={tempo}
+                onTempoChange={setTempo}
+              />
+              <Metronome
+                tempo={tempo}
+                isEnabled={true}
+              />
+            </div>
+          </div>
 
-        <div className="space-y-2">
-          <NoteCountControl
-            noteCount={noteCount}
-            onNoteCountChange={setNoteCount}
-          />
-          <OctaveControl
-            startOctave={startOctave}
-            onOctaveChange={setStartOctave}
-          />
-        </div>
-
-        <div className="my-8">
-          <StaffDisplay
-            rootNote={selectedNote}
-            scaleMode={selectedMode}
-            scaleCategory={selectedCategory}
-            activeNote={activeNote}
-            totalNotesNeeded={noteCount}
-            startOctave={startOctave}
-          />
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <Launchpad
-            rootNote={selectedNote}
-            scaleMode={selectedMode}
-            scaleCategory={selectedCategory}
-            activeNote={activeNote}
-            onNoteActivate={setActiveNote}
-            totalNotesNeeded={noteCount}
-            startOctave={startOctave}
-            tempo={tempo}
-          />
+          <div className="flex flex-col items-center gap-6 w-full">
+            <Launchpad
+              rootNote={selectedNote}
+              scaleMode={selectedMode}
+              scaleCategory={selectedCategory}
+              startOctave={startOctave}
+              totalNotesNeeded={noteCount}
+              onNoteActivate={setActiveNote}
+              activeNote={activeNote}
+              tempo={tempo}
+            />
+            <StaffDisplay
+              rootNote={selectedNote}
+              scaleMode={selectedMode}
+              scaleCategory={selectedCategory}
+              activeNote={activeNote}
+              totalNotesNeeded={noteCount}
+              startOctave={startOctave}
+            />
+            <AutoPlay
+              rootNote={selectedNote}
+              scaleMode={selectedMode}
+              scaleCategory={selectedCategory}
+              startOctave={startOctave}
+              tempo={tempo}
+            />
+          </div>
         </div>
       </div>
     </main>
