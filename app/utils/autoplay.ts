@@ -1,17 +1,22 @@
 import { Note } from './music';
 
-export type Duration = '4n' | '8n' | '16n' | '8t' | '4n.' | '8n.' | '4r' | '8r' | '16r';
+export type Duration = '4n' | '8n' | '16n' | '8t' | '4n.' | '8n.' | '4r' | '8r' | '16r' | '2r';
 
 export interface SoloEvent {
   note: { note: Note; octave: number } | null;
   duration: Duration;
 }
 
-// Helper to create a rest
 function createRest(): SoloEvent {
+  const rand = Math.random();
+  let duration: Duration;
+  if (rand < 0.5) duration = '8r';
+  else if (rand < 0.6) duration = '16r';
+  else if (rand < 0.8) duration = '4r';
+  else duration = '2r';
   return {
     note: null,
-    duration: Math.random() < 0.7 ? '8r' : '16r'
+    duration
   };
 }
 
@@ -28,41 +33,57 @@ function getInterval(note1: { note: Note; octave: number }, note2: { note: Note;
   return octaveDiff * 12 + semitoneDiff;
 }
 
-// Helper to get a note at a specific interval from a given note
-function getNoteAtInterval(baseNote: { note: Note; octave: number }, interval: number): { note: Note; octave: number } {
-  const NOTES: Note[] = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-  const noteIndex = NOTES.indexOf(baseNote.note);
-  
-  // Calculate new note index and octave
-  const totalSemitones = interval;
-  const octaveChange = Math.floor(totalSemitones / 12);
-  const semitoneChange = totalSemitones % 12;
-  
-  let newNoteIndex = (noteIndex + semitoneChange) % 12;
-  if (newNoteIndex < 0) newNoteIndex += 12;
-  
-  const newOctave = baseNote.octave + octaveChange;
-  
+// Helper to get a note at a specific interval within the scale
+function getNoteAtIntervalInScale(
+  baseNote: { note: Note; octave: number },
+  interval: number,
+  scaleNotes: { note: Note; octave: number }[]
+): { note: Note; octave: number } {
+  // Find the index of the baseNote in scaleNotes
+  let baseIndex = scaleNotes.findIndex(
+    n => n.note === baseNote.note && n.octave === baseNote.octave
+  );
+  if (baseIndex === -1) {
+    // If not found, find the closest note in the scale
+    baseIndex = findClosestScaleNoteIndex(baseNote, scaleNotes);
+  }
+
+  const scaleLength = scaleNotes.length;
+  let newIndex = baseIndex + interval;
+
+  let octaveOffset = 0;
+  // Handle wrapping across octaves
+  if (newIndex < 0) {
+    octaveOffset = Math.floor(newIndex / scaleLength);
+    newIndex = ((newIndex % scaleLength) + scaleLength) % scaleLength;
+  } else if (newIndex >= scaleLength) {
+    octaveOffset = Math.floor(newIndex / scaleLength);
+    newIndex = newIndex % scaleLength;
+  }
+
+  const target = scaleNotes[newIndex];
   return {
-    note: NOTES[newNoteIndex],
-    octave: newOctave
+    note: target.note,
+    octave: target.octave + octaveOffset
   };
 }
 
-// Helper to find the closest note in the scale
-function findClosestScaleNote(note: { note: Note; octave: number }, scaleNotes: { note: Note; octave: number }[]): { note: Note; octave: number } {
-  let closestNote = scaleNotes[0];
+// Helper to find the closest note's index in the scale
+function findClosestScaleNoteIndex(
+  note: { note: Note; octave: number },
+  scaleNotes: { note: Note; octave: number }[]
+): number {
+  let closestIndex = 0;
   let smallestInterval = Infinity;
-  
-  for (const scaleNote of scaleNotes) {
+  for (let i = 0; i < scaleNotes.length; i++) {
+    const scaleNote = scaleNotes[i];
     const interval = Math.abs(getInterval(note, scaleNote));
     if (interval < smallestInterval) {
       smallestInterval = interval;
-      closestNote = scaleNote;
+      closestIndex = i;
     }
   }
-  
-  return closestNote;
+  return closestIndex;
 }
 
 // Helper to create a melodic phrase based on history
@@ -92,8 +113,8 @@ function createMelodicPhrase(
     // Determine the next note based on melodic patterns
     let nextNote: { note: Note; octave: number };
     
-    // 80% chance to follow melodic patterns
-    if (Math.random() < 0.8) {
+    // 90% chance to follow melodic patterns
+    if (Math.random() < 0.9) {
       // Prioritize stepwise motion (80% chance)
       if (Math.random() < 0.8) {
         // Stepwise motion (up or down by 1 or 2 steps)
@@ -109,7 +130,7 @@ function createMelodicPhrase(
         }
         
         const interval = goUp ? step : -step;
-        nextNote = getNoteAtInterval(lastNote, interval);
+        nextNote = getNoteAtIntervalInScale(lastNote, interval, scaleNotes);
         
         // Update direction
         direction = goUp ? 1 : -1;
@@ -117,14 +138,11 @@ function createMelodicPhrase(
         // Larger intervals (thirds, fourths) - less common
         const intervals = [3, -3, 4, -4];
         const interval = intervals[Math.floor(Math.random() * intervals.length)];
-        nextNote = getNoteAtInterval(lastNote, interval);
+        nextNote = getNoteAtIntervalInScale(lastNote, interval, scaleNotes);
         
         // Update direction
         direction = interval > 0 ? 1 : -1;
       }
-      
-      // Find the closest note in the scale
-      nextNote = findClosestScaleNote(nextNote, scaleNotes);
       
       // 20% chance to choose a random note from the scale
     } else {
@@ -179,6 +197,7 @@ function createMelodicPhrase(
     
     if (isDownbeat && i === 0) {
       // First note on downbeat - longer duration
+      console.log("DOWNBEAT")
       duration = Math.random() < 0.8 ? '4n' : '8n';
     } else if (i === 0) {
       // First note of phrase (not on downbeat)
@@ -200,6 +219,7 @@ function createMelodicPhrase(
         } else if (rand < 0.8) {
           duration = '16n';
         } else if (rand < 0.9) {
+          console.log("TRIPLET")
           // Start a new triplet group only if we have room in the phrase
           duration = i < length - 2 ? '8t' : '8n';
         } else {
@@ -236,7 +256,7 @@ export function generateSoloSequence(scaleNotes: { note: Note; octave: number }[
   
   for (let measure = 0; measure < measures; measure++) {
     // Start each measure with a higher probability of starting on beat 1
-    if (measure === 0 || Math.random() < 0.4) {
+    if (measure === 0) {
       // Create a phrase that starts on beat 1 (downbeat)
       const phraseLength = Math.floor(Math.random() * 2) + 2; // 2-3 notes
       const phrase = createMelodicPhrase(scaleNotes, history, phraseLength, true);
