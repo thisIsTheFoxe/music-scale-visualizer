@@ -242,8 +242,8 @@ export function generateSoloSequence(scaleNotes: { note: Note; octave: number }[
   // Create a history of events for context
   const history: SoloEvent[] = [];
   
-  // Track the overall melodic contour
-  const overallDirection = 0; // -1 for down, 0 for neutral, 1 for up
+  // Remove unused variable
+  // const overallDirection = 0; // -1 for down, 0 for neutral, 1 for up
   
   for (let measure = 0; measure < measures; measure++) {
     // Start each measure with a higher probability of starting on beat 1

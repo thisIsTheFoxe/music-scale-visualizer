@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Note, ScaleMode, ScaleCategory, getScaleName, getScaleNoteCount } from './utils/music';
+import { Note, ScaleMode, ScaleCategory } from './utils/music';
 import ScaleSelector from './components/ScaleSelector';
 import StaffDisplay from './components/StaffDisplay';
 import Launchpad from './components/Launchpad';
