@@ -12,12 +12,13 @@ export default function TempoControl({ initialTempo = 120, onTempoChange }: Temp
   const [taps, setTaps] = useState<number[]>([]);
   const tapTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
-  const handleTempoChange = (newTempo: number) => {
+  // Wrap handleTempoChange in useCallback
+  const handleTempoChange = useCallback((value: number) => {
     // Clamp tempo between 40 and 240 BPM
-    const clampedTempo = Math.min(Math.max(40, newTempo), 240);
+    const clampedTempo = Math.min(Math.max(40, value), 240);
     setTempo(clampedTempo);
-    onTempoChange(clampedTempo);
-  };
+    if (onTempoChange) onTempoChange(clampedTempo);
+  }, [onTempoChange]);
 
   const adjustTempo = (amount: number) => {
     handleTempoChange(tempo + amount);

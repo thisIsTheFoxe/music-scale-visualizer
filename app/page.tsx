@@ -25,8 +25,9 @@ export default function Home() {
   const [startOctave, setStartOctave] = useState(4);
   const [tempo, setTempo] = useState(120);
 
-  const scaleName = getScaleName(selectedNote, selectedMode, selectedCategory);
-  const noteCountText = getScaleNoteCount(selectedMode, selectedCategory);
+  // Remove unused variables
+  // const scaleName = getScaleName(selectedNote, selectedMode, selectedCategory);
+  // const noteCountText = getScaleNoteCount(selectedMode, selectedCategory);
 
   return (
     <main className="min-h-screen bg-white flex flex-col items-center py-4 sm:py-8 px-2 sm:px-4">
@@ -76,7 +77,6 @@ export default function Home() {
               totalNotesNeeded={noteCount}
               onNoteActivate={setActiveNote}
               activeNote={activeNote}
-              tempo={tempo}
             />
             <StaffDisplay
               rootNote={selectedNote}

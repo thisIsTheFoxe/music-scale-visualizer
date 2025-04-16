@@ -65,13 +65,13 @@ function findClosestScaleNote(note: { note: Note; octave: number }, scaleNotes: 
   return closestNote;
 }
 
-// Helper to determine if a note is in the scale
-function isNoteInScale(note: { note: Note; octave: number }, scaleNotes: { note: Note; octave: number }[]): boolean {
-  return scaleNotes.some(scaleNote => 
-    scaleNote.note === note.note && 
-    Math.abs(scaleNote.octave - note.octave) <= 1
-  );
-}
+// Remove unused function
+// function isNoteInScale(note: { note: Note; octave: number }, scaleNotes: { note: Note; octave: number }[]): boolean {
+//   return scaleNotes.some(scaleNote => 
+//     scaleNote.note === note.note && 
+//     Math.abs(scaleNote.octave - note.octave) <= 1
+//   );
+// }
 
 // Helper to create a melodic phrase based on history
 function createMelodicPhrase(
@@ -243,7 +243,7 @@ export function generateSoloSequence(scaleNotes: { note: Note; octave: number }[
   const history: SoloEvent[] = [];
   
   // Track the overall melodic contour
-  let overallDirection = 0; // -1 for down, 0 for neutral, 1 for up
+  const overallDirection = 0; // -1 for down, 0 for neutral, 1 for up
   
   for (let measure = 0; measure < measures; measure++) {
     // Start each measure with a higher probability of starting on beat 1

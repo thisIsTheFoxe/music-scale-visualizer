@@ -12,7 +12,6 @@ interface LaunchpadProps {
   onNoteActivate: (note: { note: Note; octave: number } | null) => void;
   totalNotesNeeded: number;
   startOctave: number;
-  tempo: number;
 }
 
 interface ScaleNoteWithOctave {
@@ -29,11 +28,9 @@ export default function Launchpad({
   activeNote,
   onNoteActivate,
   totalNotesNeeded,
-  startOctave,
-  tempo = 120
+  startOctave
 }: LaunchpadProps) {
   const [synth, setSynth] = useState<Tone.Synth | null>(null);
-  const [synthReady, setSynthReady] = useState(false);
 
   // Create synth only after Tone context is running
   const ensureSynth = useCallback(async () => {
@@ -43,10 +40,8 @@ export default function Launchpad({
     if (!synth) {
       const newSynth = new Tone.Synth().toDestination();
       setSynth(newSynth);
-      setSynthReady(true);
       return newSynth;
     }
-    setSynthReady(true);
     return synth;
   }, [synth]);
 
