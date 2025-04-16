@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Factory, Stave, StaveNote, Voice, Formatter, Accidental } from 'vexflow';
 import { Note, ScaleMode, ScaleCategory, getScale, getVexFlowNote } from '../utils/music';
 
@@ -22,6 +22,18 @@ export default function StaffDisplay({
   startOctave
 }: StaffDisplayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(320);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth || 320);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     try {
@@ -58,15 +70,18 @@ export default function StaffDisplay({
         scaleNotes.push({ note, octave: currentOctave });
       }
 
+      // Responsive width (min 320, max 1000)
+      const width = Math.max(320, Math.min(containerWidth, 1000));
+      
       // Initialize VexFlow
       const vf = new Factory({
-        renderer: { elementId: containerId, width: 800, height: 200 }
+        renderer: { elementId: containerId, width, height: 180 }
       });
 
       const context = vf.getContext();
       
       // Create a single stave without time signature
-      const stave = new Stave(10, 60, 780);
+      const stave = new Stave(10, 60, width - 20);
       stave.addClef('treble');
       stave.setContext(context).draw();
 
@@ -101,7 +116,7 @@ export default function StaffDisplay({
       // Format and justify the notes
       new Formatter()
         .joinVoices([voice])
-        .format([voice], 700); // Leave some space for clef
+        .format([voice], width - 100); // Leave some space for clef
 
       // Draw the notes
       voice.draw(context, stave);
@@ -109,12 +124,13 @@ export default function StaffDisplay({
     } catch (error) {
       console.error('Error in StaffDisplay:', error);
     }
-  }, [rootNote, scaleMode, scaleCategory, activeNote, totalNotesNeeded, startOctave]);
+  }, [rootNote, scaleMode, scaleCategory, activeNote, totalNotesNeeded, startOctave, containerWidth]);
 
   return (
     <div 
       ref={containerRef} 
-      className="w-full max-w-[1000px] mx-auto bg-white p-4 rounded-lg shadow-md overflow-x-auto"
+      className="w-full max-w-[1000px] mx-auto bg-white p-2 sm:p-4 rounded-lg shadow-md overflow-x-auto"
+      style={{ minWidth: 0 }}
     />
   );
 } 

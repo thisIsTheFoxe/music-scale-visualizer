@@ -29,14 +29,14 @@ export default function Home() {
   const noteCountText = getScaleNoteCount(selectedMode, selectedCategory);
 
   return (
-    <main className="min-h-screen bg-white flex flex-col items-center py-8 px-4">
+    <main className="min-h-screen bg-white flex flex-col items-center py-4 sm:py-8 px-2 sm:px-4">
       <div className="w-full max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-center mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-8">
           Music Scale Visualizer
         </h1>
 
-        <div className="flex flex-col items-center gap-8">
-          <div className="flex flex-col items-center gap-4 bg-white p-6 rounded-lg shadow-sm">
+        <div className="flex flex-col items-center gap-4 sm:gap-8">
+          <div className="flex flex-col items-center gap-3 sm:gap-4 bg-white p-4 sm:p-6 rounded-lg shadow-sm w-full">
             <ScaleSelector
               selectedNote={selectedNote}
               selectedMode={selectedMode}
@@ -45,7 +45,7 @@ export default function Home() {
               onModeChange={setSelectedMode}
               onCategoryChange={setSelectedCategory}
             />
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
               <TempoControl
                 initialTempo={tempo}
                 onTempoChange={setTempo}
@@ -57,7 +57,17 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex flex-col items-center gap-6 w-full">
+          <div className="flex flex-col items-center gap-4 sm:gap-6 w-full">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6 w-full mb-2">
+              <NoteCountControl
+                noteCount={noteCount}
+                onNoteCountChange={setNoteCount}
+              />
+              <OctaveControl
+                startOctave={startOctave}
+                onOctaveChange={setStartOctave}
+              />
+            </div>
             <Launchpad
               rootNote={selectedNote}
               scaleMode={selectedMode}

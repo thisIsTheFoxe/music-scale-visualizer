@@ -33,16 +33,22 @@ export default function Launchpad({
   tempo = 120
 }: LaunchpadProps) {
   const [synth, setSynth] = useState<Tone.Synth | null>(null);
+  const [synthReady, setSynthReady] = useState(false);
 
-  useEffect(() => {
-    // Initialize synth
-    const newSynth = new Tone.Synth().toDestination();
-    setSynth(newSynth);
-
-    return () => {
-      newSynth.dispose();
-    };
-  }, []);
+  // Create synth only after Tone context is running
+  const ensureSynth = useCallback(async () => {
+    if (Tone.context.state !== 'running') {
+      await Tone.start();
+    }
+    if (!synth) {
+      const newSynth = new Tone.Synth().toDestination();
+      setSynth(newSynth);
+      setSynthReady(true);
+      return newSynth;
+    }
+    setSynthReady(true);
+    return synth;
+  }, [synth]);
 
   const baseScaleNotes = useMemo(() => getScale(rootNote, scaleMode, scaleCategory), [rootNote, scaleMode, scaleCategory]);
   
@@ -88,63 +94,81 @@ export default function Launchpad({
     return key.toUpperCase();
   };
 
-  const playNote = useCallback(({ note, octave }: ScaleNoteWithOctave) => {
-    if (!synth) return;
-    
+  const [pressedIndex, setPressedIndex] = useState<number | null>(null);
+  const [heldNote, setHeldNote] = useState<ScaleNoteWithOctave | null>(null);
+
+  const startNote = useCallback(async ({ note, octave }: ScaleNoteWithOctave, index: number) => {
+    const s = await ensureSynth();
+    if (!s) return;
+    // Only start if not already held
+    if (heldNote && heldNote.note === note && heldNote.octave === octave) return;
+    setHeldNote({ note, octave });
+    setPressedIndex(index);
     onNoteActivate({ note, octave });
     const freq = getNoteFrequency(note, octave);
-    // Convert tempo to note duration (in seconds)
-    // For a quarter note: duration = 60 / tempo
-    // For an eighth note: duration = 30 / tempo
-    const duration = 30 / tempo;
-    synth.triggerAttackRelease(freq, duration);
-  }, [synth, onNoteActivate, tempo]);
+    s.triggerAttack(freq);
+  }, [ensureSynth, onNoteActivate, heldNote]);
+
+  const stopNote = useCallback(() => {
+    if (!synth) return;
+    if (!heldNote) return;
+    setHeldNote(null);
+    setPressedIndex(null);
+    onNoteActivate(null);
+    synth.triggerRelease();
+  }, [synth, onNoteActivate, heldNote]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
       const index = keyMap[e.key];
-      if (index !== undefined && index < scaleNotes.length) {
-        playNote(scaleNotes[index]);
+      if (index !== undefined && index < scaleNotes.length && (!heldNote || pressedIndex !== index)) {
+        await startNote(scaleNotes[index], index);
       }
     };
-
     const handleKeyUp = (e: KeyboardEvent) => {
       const index = keyMap[e.key];
-      if (index !== undefined && index < scaleNotes.length) {
-        onNoteActivate(null);
+      if (index !== undefined && index < scaleNotes.length && heldNote) {
+        stopNote();
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
-
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [scaleNotes, playNote, onNoteActivate, keyMap]);
+  }, [scaleNotes, startNote, stopNote, keyMap, heldNote, pressedIndex]);
+
+  // Clean up synth on unmount
+  useEffect(() => {
+    return () => {
+      if (synth) synth.dispose();
+    };
+  }, [synth]);
 
   return (
-    <div className="grid grid-cols-5 gap-4 p-4 max-w-3xl mx-auto">
+    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4 p-2 sm:p-4 max-w-3xl mx-auto w-full select-none">
       {scaleNotes.map(({ note, octave }, index) => (
         <button
           key={`${note}-${octave}-${index}`}
-          onMouseDown={() => playNote({ note, octave })}
-          onMouseUp={() => onNoteActivate(null)}
-          onMouseLeave={() => onNoteActivate(null)}
+          onPointerDown={async e => { e.preventDefault(); await startNote({ note, octave }, index); }}
+          onPointerUp={e => { e.preventDefault(); stopNote(); }}
+          onPointerLeave={e => { e.preventDefault(); stopNote(); }}
+          onPointerCancel={e => { e.preventDefault(); stopNote(); }}
           className={`
-            h-20 rounded-xl text-xl font-bold transition-all
-            ${activeNote?.note === note && activeNote?.octave === octave
-              ? 'bg-blue-500 text-white transform scale-95'
-              : 'bg-white text-blue-500 hover:bg-blue-50 shadow-lg'
+            h-16 sm:h-20 rounded-xl text-base sm:text-xl font-bold transition-all w-full min-w-0 break-words whitespace-normal select-none
+            ${(activeNote?.note === note && activeNote?.octave === octave) || pressedIndex === index
+              ? 'bg-blue-600 text-white scale-95 shadow-md'
+              : 'bg-white text-blue-600 hover:bg-blue-50 shadow-lg'
             }
           `}
+          style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
         >
-          {note}
-          <span className="block text-sm mt-2 opacity-50">
+          <span className="block leading-tight select-none">{note}</span>
+          <span className="block text-xs sm:text-sm mt-1 opacity-60 truncate w-full select-none">
             Key: {getKeyLabel(index)}
           </span>
-          <span className="block text-sm opacity-50">
+          <span className="block text-xs sm:text-sm opacity-60 truncate w-full select-none">
             Octave: {octave}
           </span>
         </button>
