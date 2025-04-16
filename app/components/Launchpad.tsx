@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import * as Tone from 'tone';
-import { Note, ScaleMode, ScaleCategory, getScale, getNoteFrequency } from '../utils/music';
+import { Note, ScaleMode, ScaleCategory, getNoteFrequency, getScaleNotesWithOctaves } from '../utils/music';
 
 interface LaunchpadProps {
   rootNote: Note;
@@ -45,31 +45,11 @@ export default function Launchpad({
     return synth;
   }, [synth]);
 
-  const baseScaleNotes = useMemo(() => getScale(rootNote, scaleMode, scaleCategory), [rootNote, scaleMode, scaleCategory]);
-  
-  // Create an array of notes that spans multiple octaves
-  const scaleNotes = useMemo(() => {
-    const notes: ScaleNoteWithOctave[] = [];
-    let currentOctave = startOctave;
-    let lastNoteIndex = -1; // Track the last note's position in chromatic scale
-    
-    const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    
-    for (let i = 0; i < totalNotesNeeded; i++) {
-      const note = baseScaleNotes[i % baseScaleNotes.length];
-      const noteIndex = chromaticScale.indexOf(note);
-      
-      // If this note comes earlier in the chromatic scale than the last note,
-      // it means we've wrapped around to the next octave
-      if (noteIndex <= lastNoteIndex && i > 0) {
-        currentOctave++;
-      }
-      
-      lastNoteIndex = noteIndex;
-      notes.push({ note, octave: currentOctave });
-    }
-    return notes;
-  }, [baseScaleNotes, startOctave, totalNotesNeeded]);
+  // Use shared utility for scale notes with octaves
+  const scaleNotes = useMemo(
+    () => getScaleNotesWithOctaves(rootNote, scaleMode, scaleCategory, startOctave, totalNotesNeeded),
+    [rootNote, scaleMode, scaleCategory, startOctave, totalNotesNeeded]
+  );
   
   // Map keyboard keys to notes using left side of QWERTY keyboard (5x4 grid)
   const keyMap: KeyMap = useMemo(() => ({

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import * as Tone from 'tone';
-import { Note, ScaleMode, ScaleCategory, getScale, getNoteFrequency } from '../utils/music';
+import { Note, ScaleMode, ScaleCategory, getScaleNotesWithOctaves, getNoteFrequency } from '../utils/music';
 import { generateSoloSequence, SoloEvent } from '../utils/autoplay';
 
 interface AutoPlayProps {
@@ -11,6 +11,7 @@ interface AutoPlayProps {
   scaleCategory: ScaleCategory;
   startOctave: number;
   tempo: number;
+  totalNotesNeeded: number;
   isEnabled?: boolean;
 }
 
@@ -20,6 +21,7 @@ export default function AutoPlay({
   scaleCategory,
   startOctave,
   tempo,
+  totalNotesNeeded,
   isEnabled = true
 }: AutoPlayProps) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -48,19 +50,18 @@ export default function AutoPlay({
     };
   }, []);
 
+  // Use shared utility for scale notes with octaves
+  const scaleNotes = useMemo(
+    () => getScaleNotesWithOctaves(rootNote, scaleMode, scaleCategory, startOctave, totalNotesNeeded),
+    [rootNote, scaleMode, scaleCategory, startOctave, totalNotesNeeded]
+  );
+
   const generateNewEvents = useCallback(() => {
     if (!synth) return;
 
-    // Get scale notes spanning two octaves
-    const baseScaleNotes = getScale(rootNote, scaleMode, scaleCategory);
-    const scaleNotes = baseScaleNotes.flatMap(note => [
-      { note, octave: startOctave },
-      { note, octave: startOctave + 1 }
-    ]);
-
     // Generate a sequence of notes and rests
     return generateSoloSequence(scaleNotes, 2); // 2 measures at a time
-  }, [rootNote, scaleMode, scaleCategory, startOctave, synth]);
+  }, [scaleNotes, synth]);
 
   // Set up the continuous playback loop
   const setupLoop = useCallback(() => {

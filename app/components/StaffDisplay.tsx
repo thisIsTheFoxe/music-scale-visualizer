@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Factory, Stave, StaveNote, Voice, Formatter, Accidental } from 'vexflow';
-import { Note, ScaleMode, ScaleCategory, getScale, getVexFlowNote } from '../utils/music';
+import { Note, ScaleMode, ScaleCategory, getScaleNotesWithOctaves, getVexFlowNote } from '../utils/music';
 
 interface StaffDisplayProps {
   rootNote: Note;
@@ -46,30 +46,9 @@ export default function StaffDisplay({
       const containerId = `staff-container-${Math.random().toString(36).substring(2, 9)}`;
       containerRef.current.id = containerId;
 
-      // Get the scale notes
-      const baseScaleNotes = getScale(rootNote, scaleMode, scaleCategory);
+      // Use shared utility for scale notes with octaves
+      const scaleNotes = getScaleNotesWithOctaves(rootNote, scaleMode, scaleCategory, startOctave, totalNotesNeeded);
       
-      // Create an array of notes that spans multiple octaves
-      const scaleNotes = [];
-      let currentOctave = startOctave;
-      let lastNoteIndex = -1; // Track the last note's position in chromatic scale
-      
-      const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-      
-      for (let i = 0; i < totalNotesNeeded; i++) {
-        const note = baseScaleNotes[i % baseScaleNotes.length];
-        const noteIndex = chromaticScale.indexOf(note);
-        
-        // If this note comes earlier in the chromatic scale than the last note,
-        // it means we've wrapped around to the next octave
-        if (noteIndex <= lastNoteIndex && i > 0) {
-          currentOctave++;
-        }
-        
-        lastNoteIndex = noteIndex;
-        scaleNotes.push({ note, octave: currentOctave });
-      }
-
       // Responsive width (min 320, max 1000)
       const width = Math.max(320, Math.min(containerWidth, 1000));
       

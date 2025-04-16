@@ -65,14 +65,6 @@ function findClosestScaleNote(note: { note: Note; octave: number }, scaleNotes: 
   return closestNote;
 }
 
-// Remove unused function
-// function isNoteInScale(note: { note: Note; octave: number }, scaleNotes: { note: Note; octave: number }[]): boolean {
-//   return scaleNotes.some(scaleNote => 
-//     scaleNote.note === note.note && 
-//     Math.abs(scaleNote.octave - note.octave) <= 1
-//   );
-// }
-
 // Helper to create a melodic phrase based on history
 function createMelodicPhrase(
   scaleNotes: { note: Note; octave: number }[], 
@@ -241,9 +233,6 @@ export function generateSoloSequence(scaleNotes: { note: Note; octave: number }[
   
   // Create a history of events for context
   const history: SoloEvent[] = [];
-  
-  // Remove unused variable
-  // const overallDirection = 0; // -1 for down, 0 for neutral, 1 for up
   
   for (let measure = 0; measure < measures; measure++) {
     // Start each measure with a higher probability of starting on beat 1

@@ -25,10 +25,6 @@ export default function Home() {
   const [startOctave, setStartOctave] = useState(4);
   const [tempo, setTempo] = useState(120);
 
-  // Remove unused variables
-  // const scaleName = getScaleName(selectedNote, selectedMode, selectedCategory);
-  // const noteCountText = getScaleNoteCount(selectedMode, selectedCategory);
-
   return (
     <main className="min-h-screen bg-white flex flex-col items-center py-4 sm:py-8 px-2 sm:px-4">
       <div className="w-full max-w-4xl mx-auto">
@@ -92,6 +88,7 @@ export default function Home() {
               scaleCategory={selectedCategory}
               startOctave={startOctave}
               tempo={tempo}
+              totalNotesNeeded={noteCount}
             />
           </div>
         </div>

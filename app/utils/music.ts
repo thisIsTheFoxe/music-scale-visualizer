@@ -53,4 +53,29 @@ export function getScaleName(root: Note, mode: ScaleMode, category: ScaleCategor
 export function getScaleNoteCount(mode: ScaleMode, category: ScaleCategory): number {
   const patternKey = `${mode}-${category}` as ScalePatternKey;
   return SCALE_PATTERNS[patternKey].length;
-} 
+}
+
+// Returns an array of notes with octaves, wrapping as needed for totalNotesNeeded
+export function getScaleNotesWithOctaves(
+  root: Note,
+  mode: ScaleMode,
+  category: ScaleCategory,
+  startOctave: number,
+  totalNotesNeeded: number
+): { note: Note; octave: number }[] {
+  const baseScaleNotes = getScale(root, mode, category);
+  const chromaticScale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const notes: { note: Note; octave: number }[] = [];
+  let currentOctave = startOctave;
+  let lastNoteIndex = -1;
+  for (let i = 0; i < totalNotesNeeded; i++) {
+    const note = baseScaleNotes[i % baseScaleNotes.length];
+    const noteIndex = chromaticScale.indexOf(note);
+    if (noteIndex <= lastNoteIndex && i > 0) {
+      currentOctave++;
+    }
+    lastNoteIndex = noteIndex;
+    notes.push({ note, octave: currentOctave });
+  }
+  return notes;
+}
